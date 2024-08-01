@@ -1,0 +1,7 @@
+export enum UploadCategory {
+    PROFILE_IMAGE = "PROFILE_IMAGE",
+    BLOG_IMAGE = "BLOG_IMAGE",
+    BLOG_VIDEO = "BLOG_VIDEO",
+    BLOG_FILE = "BLOG_FILE",
+    PROFILE_COVER_IMAGE = "PROFILE_COVER_IMAGE",
+  }
