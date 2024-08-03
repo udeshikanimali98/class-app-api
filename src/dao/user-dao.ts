@@ -18,46 +18,54 @@ export namespace UserDao {
     const iCustomer = new User(data);
     console.log(data);
     const customer = await iCustomer.save();
-    return customer; // Return the whole user document
-    //return customer._id.toString();
+    return customer; 
   }
   
   
-  // export async function authenticateUser(
-  //   email: string,
-  //   password: string
-  // ): Promise<any> {
-  //   let user = await User.findOne({ email: email });
-  //   if (
-  //     user != null &&
-  //     user.verificationStatus == UserVerificationStatus.BLOCKED
-  //   ) {
-  //     throw new ApplicationError("User Account Is Blocked!");
-  //   }
-  //   if (user) {
-  //     const isMatch = await user.comparePassword(password);
-  //     if (isMatch) {
-  //       const tokenString = await user.createAccessToken();
-  //       let logedUser: IBusinessUser | IIndividualUser = {} as
-  //         | IBusinessUser
-  //         | IIndividualUser;
-  //       if (user.role === Role.INDIVIDUAL) {
-  //         logedUser = await IndividualUserDao.getCurrentUserById(user._id);
-  //       } else if (user.role === Role.BUSINESS) {
-  //         logedUser = await BusinessUserDao.getCurrentUserById(user._id);
-  //       }
-  //       return {
-  //         token: tokenString,
-  //         role: user.role,
-  //         logedUser: logedUser,
-  //       };
-  //     } else {
-  //       console.log("Incorrect email/password combination!");
-  //       return false;
-  //     }
-  //   } else {
-  //     throw new ApplicationError("User not found in the system!");
-  //   }
-  // }
+  export async function authenticateUser(
+    email: string,
+    password: string
+  ): Promise<any> {
+    let user = await User.findOne({ email: email });
+    
+    if (user) {
+      const isMatch = await user.comparePassword(password);
+      if (isMatch) {
+        const tokenString = await user.createAccessToken();  
+        return {
+          token: tokenString,
+          role: user.role,
+        };
+      } else {
+        console.log("Incorrect email/password combination!");
+        return false;
+      }
+    } else {
+      throw new ApplicationError("User not found in the system!");
+    }
+  }
+
+  export async function updateUser(
+    userId: string,
+    data: Partial<any>
+  ): Promise<any | null> {
+    try {
+      const result = await User.findOneAndUpdate(
+        { _id: userId },
+        { $set: data },
+        { new: true }
+      );
+
+      if (result) {
+        
+        return result;
+      } else {
+        throw new Error(`Customer with ID ${userId} not found.`);
+      }
+    } catch (error: any) {
+    
+      throw error;
+    }
+  }
 
 }

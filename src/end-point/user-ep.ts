@@ -3,10 +3,11 @@ import { validationResult } from "express-validator";
 import { Util } from "../common/util";
 import { UserDao } from "../dao/user-dao";
 import {
+  isEmailValid,
   Validation,
   passwordValidation,
 } from "../common/validation";
-import { DUser, IUser, Medium, Role } from "../models/user-model";
+import { DUser} from "../models/user-model";
 
 
 import { EmailService } from "../services/mail";
@@ -27,11 +28,11 @@ export namespace UserEp {
       return Util.sendError(res, errors.array()[0]["msg"]);
     }
 
-    // UserDao.authenticateUser(req.body.email, req.body.password)
-    //   .then((token: string) => {
-    //     Util.sendSuccess(res, token, "User logged succefully");
-    //   })
-    //   .catch(next);
+    UserDao.authenticateUser(req.body.email, req.body.password)
+      .then((token: string) => {
+        Util.sendSuccess(res, token, "User logged succefully");
+      })
+      .catch(next);
   }
 
   export async function register(
@@ -76,8 +77,7 @@ export namespace UserEp {
         phoneNumber: req.body.phoneNumber,
         name: req.body.name,
         password: password,
-       
-         role: Role.CHILD,
+
       };
 
       const token = await UserDao.createCustomer(data);
@@ -94,55 +94,72 @@ export namespace UserEp {
     }
   }
 
-  // export function getSelf(req: Request, res: Response, next: NextFunction) {
-  //   UserDao.getUserById(req.user!._id)
-  //     .then((user) => {
-  //       const url = process.env.AWS_REGION_ENDPOINT || ''
-  //       if(user.user.profileImage){
-  //         user.user.profileImage = url + user.user.profileImage;
-  //       }
-  //       if(user.user.aboutSelfVideo){
-  //         user.user.aboutSelfVideo = url + user.user.aboutSelfVideo;
-  //       }
-  //       if(user.user.photos){
-  //         user.user.photos = user.user.photos.map(photo => url + photo);
-  //       }
-  //       Util.sendSuccess(res, user, "User found");
-  //     })
-  //     .catch(next);
-  // }
+  export async function login(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { email, password } = req.body;
+     
+      const isEmail = isEmailValid(email);
 
+      if (!isEmail ) {
+        return Util.sendError(res, "Invalid email or phone number format");
+      }
 
+      let user;
+      if (isEmail) {
+        user = await UserDao.getUserByEmail(email);
+      } 
 
-  //Get user by ID for friend
-  // export function getUser(req: Request, res: Response, next: NextFunction) {
-  //   // const id = req.params.id;
-  //   UserDao.getFriend(req.params.id)
-  //     .then((user) => {
-  //       const url = process.env.AWS_REGION_ENDPOINT || ''
-  //       if(user.user.profileImage){
-  //         user.user.profileImage = url + user.user.profileImage;
-  //       }
-  //       if(user.user.aboutSelfVideo){
-  //         user.user.aboutSelfVideo = url + user.user.aboutSelfVideo;
-  //       }
-  //       if(user.user.photos){
-  //         user.user.photos = user.user.photos.map(photo => url + photo);
-  //       }
-  //       Util.sendSuccess(res, user, "User found");
-  //     })
-  //     .catch(next);
-  // }
+      if (!user) {
+        return Util.sendError(res, "User not found");
+      }
 
+      // Check if the password is correct
+      const isPasswordValid = await UserDao.authenticateUser(
+        user.email,
+        password
+      );
+      if (!isPasswordValid) {
+        return Util.sendError(res, "Incorrect password");
+      }
 
-  
-
- 
-
-  
-
- 
+      // Generate and send token
+      if (isPasswordValid) {
+        Util.sendSuccess(res, isPasswordValid, "User logged succefully");
+      }
+    } catch (error) {
+      console.error("Error in loginWithEmailOrPhone:", error);
+      Util.sendError(res, "An internal server error occurred", 500);
+    }
   }
+
+  export async function updateUserRole(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const {
+        role,
+      } = req.body;
+
+      const user = req.user?._id.toString();
+      if (!user) {
+        return Util.sendError(res, "User not found");
+      }
+      const updatedUser = await UserDao.updateUser(user, {
+        role,
+      });
+      Util.sendSuccess(res, updatedUser, "Preference updated successfully");
+    } catch (error: any) {
+      Util.sendError(res, error.message);
+    }
+  }
+
+}
 
   
 
