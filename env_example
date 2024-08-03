@@ -4,4 +4,9 @@ JWT_SECRET="ClassAppKey"
 
 MONGOOSE_URI=mongodb://127.0.0.1:27017/class_app_db
 
-
+MAIL_HOST=smtp-relay.brevo.com
+MAIL_PORT=587
+MAIL_USERNAME=79c943001@smtp-brevo.com
+MAIL_PASSWORD=Wd0vSI3w6KNHcJzq
+MAIL_FROM_ADDRESS=qnicsoftware@gmail.com
+BREVO_API_KEY=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
