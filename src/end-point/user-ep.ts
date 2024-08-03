@@ -11,6 +11,8 @@ import { DUser} from "../models/user-model";
 
 
 import { EmailService } from "../services/mail";
+import { OTPDao } from "../dao/otp-dao";
+import { OtpTypes } from "../enums/otpTypes";
 
 export namespace UserEp {
   export function authValidationRules() {
@@ -156,6 +158,197 @@ export namespace UserEp {
       Util.sendSuccess(res, updatedUser, "Preference updated successfully");
     } catch (error: any) {
       Util.sendError(res, error.message);
+    }
+  }
+
+  export async function forgetPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    const email = req.body.email;
+
+    try {
+     // const isPhoneNumber = isPhoneNumberValid(emailOrPhoneNumber);
+      const isEmail = isEmailValid(email);
+
+      if (!isEmail ) {
+        return Util.sendError(res, "Invalid email or phone number format");
+      }
+
+      let user;
+      if (isEmail) {
+        user = await UserDao.getUserByEmail(email);
+      } 
+      // else if (isPhoneNumber) {
+      //   user = await UserDao.getUserByPhoneNumber(emailOrPhoneNumber);
+      // }
+
+      if (!user) {
+        return Util.sendError(res, "User not found");
+      }
+      // Generate and save OTP
+      const expirationMinutes = 3;
+      const otpDetails = await OTPDao.createOTP(
+        user.email,
+        expirationMinutes,
+        OtpTypes.FORGET_PASSWORD
+      );
+
+      // Send the OTP to the user (e.g., via email or SMS)
+      console.log(`Generated OTP for user ${email}: ${otpDetails.otp}`);
+
+      if(isEmail){
+        // await EmailService.sendTestEmail(
+        //   user.email,
+        //   "hEy"
+        // );
+        await EmailService.sendVerifyEmail(
+          user.email,
+          "One Time Password(O T P) Confirmation - ClassQ",
+          otpDetails.otp,
+          "Let's recover your ClassQ account.",
+          `Hi there, thank you for signing up with ClassQ. Use the following code to recover your account.`
+        );
+        console.log("222222222")
+        Util.sendSuccess(res, null, "OTP generated successfully");
+      }
+
+      // if(isPhoneNumber){
+      // // await sendMsg();
+      // console.log("OTP for " + req.body.emailOrPhoneNumber + " is " + otpDetails.otp);
+      // const text = `Your OTP code is ${otpDetails.otp}. Do not share this code.`;
+      // const smsStatus = await SMSService.sendSMS(emailOrPhoneNumber, text);
+      // if (smsStatus) {
+      //   Util.sendSuccess(res, user, "Send OTP to verify mobile number");
+        
+      // } else {
+        
+      //   Util.sendError(
+      //     res,
+      //     "Couldn't send SMS code to the given phoneNumber",
+      //     500
+      //   );
+      // }
+      // }
+     
+    } catch (error: any) {    
+      Util.sendError(res, error.message);
+    }
+  }
+
+  export async function checkOtp(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return Util.sendError(res, errors.array()[0]["msg"]);
+      }
+
+      const { email, otp } = req.body;
+
+     // const isPhoneNumber = isPhoneNumberValid(emailOrPhoneNumber);
+      const isEmail = isEmailValid(email);
+
+      if (!isEmail ) {
+        return Util.sendError(res, "Invalid email or phone number format");
+      }
+
+      let user;
+      if (isEmail) {
+        user = await UserDao.getUserByEmail(email);
+      } 
+      // else if (isPhoneNumber) {
+      //   user = await UserDao.getUserByPhoneNumber(emailOrPhoneNumber);
+      // }
+
+      if (!user) {
+        return Util.sendError(res, "User not found");
+      }
+
+      // Check OTP validity.
+      const otpDetails = await OTPDao.getLatestOTP(user.email);
+      if (!otpDetails || otpDetails.otp !== otp) {
+        return Util.sendError(res, "Invalid OTP");
+      }
+      const currentTime = new Date();
+      if (otpDetails.expiresAt < currentTime) {
+        return Util.sendError(res, "Expired OTP");
+      }
+
+      const resetToken = Util.generateResetToken(user.email);
+      return Util.sendSuccess(res, { resetToken }, "OTP is valid");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  export async function resetPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return Util.sendError(res, errors.array()[0]["msg"]);
+      }
+
+      const { email, newPassword, resetToken } = req.body;
+
+      //const isPhoneNumber = isPhoneNumberValid(emailOrPhoneNumber);
+      const isEmail = isEmailValid(email);
+
+      if (!isEmail ) {
+        return Util.sendError(res, "Invalid email or phone number format");
+      }
+
+      let user;
+      if (isEmail) {
+        user = await UserDao.getUserByEmail(email);
+      }
+      //  else if (isPhoneNumber) {
+      //   user = await UserDao.getUserByPhoneNumber(emailOrPhoneNumber);
+      // }
+
+      if (!user) {
+        return Util.sendError(res, "User not found");
+      }
+
+      if (!Util.verifyResetToken(user.email, resetToken)) {
+        return Util.sendError(res, "Invalid or expired reset token");
+      }
+
+      const isPasswordValid = passwordValidation(newPassword);
+      if (!isPasswordValid) {
+        return Util.sendError(
+          res,
+          "Password must be at least 8 characters long and contain at least one special character and one uppercase letter"
+        );
+      }
+      // Update user's password
+      //const user = await UserDao.getUserByEmail(user.email);
+      if (user) {
+        // const hashed = await Util.passwordHashing(newPassword);
+        const newHashedPassword = await Util.passwordHashing(newPassword);
+        await UserDao.updateUser(user?._id, { password: newHashedPassword });
+
+        // Delete OTP after successful password reset
+        await OTPDao.deleteOTP(user.email);
+
+        return Util.sendSuccess(
+          res,
+          null,
+          "Your password is changed successfully & You can login now"
+        );
+      } else {
+        return Util.sendError(res, "User not found");
+      }
+    } catch (error) {
+      next(error);
     }
   }
 
