@@ -4,8 +4,6 @@ import { Util } from "../common/util";
 import { UserDao } from "../dao/user-dao";
 import {
   Validation,
-  isEmailValid,
-  isPhoneNumberValid,
   passwordValidation,
 } from "../common/validation";
 import { DUser, IUser, Medium, Role } from "../models/user-model";
@@ -13,28 +11,9 @@ import { DUser, IUser, Medium, Role } from "../models/user-model";
 
 import { EmailService } from "../services/mail";
 
-
-
-
-import { OtpTypes } from "../enums/otpTypes";
-const { OAuth2Client } = require("google-auth-library");
-const jwt = require("jsonwebtoken");
-
-
-
 export namespace UserEp {
   export function authValidationRules() {
     return [Validation.email(), Validation.password()];
-  }
-
-  export function registerValidationRules() {
-    return [
-     // Validation.role(Role.INDIVIDUAL || Role.BUSINESS),
-      Validation.email(),
-      Validation.name(),
-      Validation.password,
-      Validation.noPermissions(),
-    ];
   }
 
   export async function authenticatewithEmail(
@@ -98,16 +77,14 @@ export namespace UserEp {
         name: req.body.name,
         password: password,
        
-        // role: Role.INDIVIDUAL,
+         role: Role.CHILD,
       };
 
       const token = await UserDao.createCustomer(data);
 
-
-
       await EmailService.sendWelcomeEmail(req.body.email,
-            "Welcome to COMPATIBLE1",
-            "Welcome to COMPATIBLE1",
+            "Welcome to ClassQ",
+            "Welcome to ClassQ",
             `Thank you for registering with us.`);
 
       Util.sendSuccess(res, token, "User registered");

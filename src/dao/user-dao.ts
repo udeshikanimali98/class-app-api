@@ -1,4 +1,4 @@
-import { AppLogger } from "../common/logging";
+//import { AppLogger } from "../common/logging";
 import { ApplicationError } from "../common/application-error";
 import { DUser, IUser, Role, UserDetails } from "../models/user-model";
 import User from "../schemas/user-schema";
@@ -8,22 +8,20 @@ import { StringOrObjectId } from "../common/util";
 export namespace UserDao {
   export async function getUserByEmail(email: string): Promise<IUser | null> {
     let user = await User.findOne({ email: email });
-    AppLogger.info(`Got user for email, userID: ${user ? user._id : "None"}`);
+   // AppLogger.info(`Got user for email, userID: ${user ? user._id : "None"}`);
     return user;
   }
 
   export async function createCustomer(
     data: DUser & Partial<DUser>
-  ): Promise<string> {
+  ): Promise<IUser> {
     const iCustomer = new User(data);
-    let customer = await iCustomer.save();
-    AppLogger.info(`Create profile for user ID: ${customer._id}`);
-    return ''
-    // return await UserDao.authenticateUser(
-    //   data.email,
-    //   data.password ? data.password : ""
-    // );
+    console.log(data);
+    const customer = await iCustomer.save();
+    return customer; // Return the whole user document
+    //return customer._id.toString();
   }
+  
   
   // export async function authenticateUser(
   //   email: string,

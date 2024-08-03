@@ -1,6 +1,6 @@
 import { check } from "express-validator";
 import { Role } from "../models/user-model";
-import { MobilePhoneLocale } from "express-validator/src/options";
+// import { MobilePhoneLocale } from "express-validator/src/options";
 import { Types } from "mongoose";
 
 export const Validation = {
@@ -12,10 +12,10 @@ export const Validation = {
       .isEmail()
       .normalizeEmail()
       .withMessage("Invalid email address and Check again!"),
-  phone: () =>
-    check("phone")
-      .isMobilePhone(<MobilePhoneLocale>"SL")
-      .withMessage("Phone number is invalid or outside the SL"),
+  // phone: () =>
+  //   check("phone")
+  //     .isMobilePhone(<MobilePhoneLocale>"SL")
+  //     .withMessage("Phone number is invalid or outside the SL"),
   password: () =>
     check("password")
       .isString()
@@ -69,10 +69,10 @@ export function isObjectId(v: string): boolean {
   return Types.ObjectId.isValid(v) && new Types.ObjectId(v).toHexString() === v;
 }
 
-export function isPhoneNumberValid(value: string): boolean {
-  const phoneRegex = /^\+\d{1,3}\d{6,14}$/;
-  return phoneRegex.test(value);
-}
+// export function isPhoneNumberValid(value: string): boolean {
+//   const phoneRegex = /^\+\d{1,3}\d{6,14}$/;
+//   return phoneRegex.test(value);
+// }
 
 export function isEmailValid(value: string): boolean {
   // Check if the identifier is an email or a phone number

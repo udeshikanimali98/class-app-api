@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import { ErrorLogger } from "./logging";
 import * as mongoose from "mongoose";
 import * as bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -33,7 +32,7 @@ export namespace Util {
       if (!error) {
         error = { stack: null, message: "Unknown Error" };
       }
-      ErrorLogger.error(error.stack);
+      //ErrorLogger.error(error.stack);
       return res.send({
         success: false,
         error: error.message,

@@ -34,7 +34,6 @@ export const userSchema = new mongoose.Schema(
     },
     name: {
       type: Schema.Types.String,
-      unique: true,
       required: true,
     },
     password: {
@@ -43,12 +42,12 @@ export const userSchema = new mongoose.Schema(
     },
     role: {
       type: Schema.Types.String,
-      enum: Object.values(Role),
+      
       required: false,
     },
     phoneNumber: {
       type: Schema.Types.String,
-      unique: true,
+     
       required: true,
     },
     
