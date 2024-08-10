@@ -2,7 +2,9 @@ PORT=3010
 
 JWT_SECRET="ClassAppKey"
 
-MONGOOSE_URI=mongodb://127.0.0.1:27017/class_app_db
+#MONGOOSE_URI=mongodb://127.0.0.1:27017/class_app_db
+
+MONGOOSE_URI=mongodb+srv://udeshikanimali644:RE3JHkeYtH7CEgmM@cluster0.caohfjm.mongodb.net/class_app_db
 
 MAIL_HOST=smtp-relay.brevo.com
 MAIL_PORT=587
