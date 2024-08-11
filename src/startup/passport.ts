@@ -1,7 +1,6 @@
 import express from "express";
 import passport from "passport";
 import { ExtractJwt } from "passport-jwt";
-import { ErrorLogger } from "../common/logging";
 import User from "../schemas/user-schema";
 
 const passportJWT = require("passport-jwt");
@@ -29,7 +28,7 @@ export default async function passportStartup(app: express.Application) {
             return callback(null, user);
           })
           .catch((ex) => {
-            ErrorLogger.error(ex);
+            //ErrorLogger.error(ex);
             return callback(ex);
           });
       }

@@ -1,6 +1,5 @@
 import passport from "passport";
 import { NextFunction, Request, Response } from "express";
-import { AppLogger } from "../common/logging";
 import { Util } from "../common/util";
 
 export class Authentication {
@@ -10,7 +9,8 @@ export class Authentication {
       { session: false },
       (err: any, user: any, info: any) => {
         if (err || !user) {
-          AppLogger.error(`Login Failed. reason: ${info}`);
+          console.log("Login Failed. reason: ${info}")
+          //AppLogger.error(`Login Failed. reason: ${info}`);
           return Util.sendError(res, info);
         }
         req.user = user;

@@ -10,7 +10,6 @@ import * as routes from "./routes";
 import { logRequest } from "./middleware/request-logger";
 import { handleError } from "./middleware/error-handler";
 import { Authentication } from "./middleware/authentication";
-import { AppLogger } from "./common/logging";
 import databaseSetup from "./startup/database";
 import passportStartup from "./startup/passport";
 import cors from "cors";
@@ -97,7 +96,8 @@ io.on("connection", (socket: any) => {
 });
 
 server.listen(PORT, () => {
-  AppLogger.info("--> Server successfully started at port :: " + PORT);
+  console.log("--> Server successfully started at port :: " + PORT)
+  //AppLogger.info("--> Server successfully started at port :: " + PORT);
 });
 
 routes.initRoutes(app);
