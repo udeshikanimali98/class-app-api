@@ -1,14 +1,14 @@
 {
     "builds": [
         {
-          "src": "dist/server.js",
+          "src": "./src/routes/index.ts",
           "use": "@vercel/node"
         }
     ], 
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "dist/server.js"
+        "dest": "./src/routes/index.ts"
       }
     ],
     "rewrites": [{ "source": "/(.*)", "destination": "/" }]
