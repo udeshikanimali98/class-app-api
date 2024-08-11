@@ -11,5 +11,5 @@
       "dest": "/dist/server.js"
     }
   ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/src" }]
+  "rewrites": [{ "source": "/(.*)", "destination": "/dist" }]
 }
