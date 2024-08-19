@@ -1,4 +1,4 @@
-/// <reference path="../global.d.ts" />
+/// <reference path="../../global.d.ts" />
 import {Permission, Role} from "../models/user-model";
 import {NextFunction, Request, Response} from "express";
 import {ApplicationError} from "../common/application-error";
