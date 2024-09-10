@@ -43,7 +43,7 @@ export const userSchema = new mongoose.Schema(
     role: {
       type: Schema.Types.String,
       
-      required: false,
+      required: true,
     },
     phoneNumber: {
       type: Schema.Types.String,

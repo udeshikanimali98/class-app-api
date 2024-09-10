@@ -9,16 +9,28 @@ export namespace UserDao {
   export async function getUserByEmail(email: string): Promise<IUser | null> {
     let user = await User.findOne({ email: email });
    // AppLogger.info(`Got user for email, userID: ${user ? user._id : "None"}`);
+   console.log(user)
+    return user;
+  }
+  export async function getUserByPhone(phoneNumber: string): Promise<IUser | null> {
+    let user = await User.findOne({ phoneNumber: phoneNumber });
+   // AppLogger.info(`Got user for email, userID: ${user ? user._id : "None"}`);
     return user;
   }
 
-  export async function createCustomer(
-    data: DUser & Partial<DUser>
-  ): Promise<IUser> {
-    const iCustomer = new User(data);
-    console.log(data);
-    const customer = await iCustomer.save();
-    return customer; 
+  // export async function createCustomer(
+  //   data: DUser & Partial<DUser>
+  // ): Promise<IUser> {
+  //   const iCustomer = new User(data);
+  //   console.log(data);
+  //   const customer = await iCustomer.save();
+  //   return customer; 
+  // }
+  export async function createCustomer(user: Partial<DUser>): Promise<IUser> {
+    const iUser = new User(user);
+    const newUser = await iUser.save();
+    console.log(newUser)
+    return newUser;
   }
   
   

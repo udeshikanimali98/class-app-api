@@ -7,7 +7,7 @@ import {
   Validation,
   passwordValidation,
 } from "../common/validation";
-import { DUser} from "../models/user-model";
+import { DUser, Role} from "../models/user-model";
 
 
 import { EmailService } from "../services/mail";
@@ -37,64 +37,140 @@ export namespace UserEp {
       .catch(next);
   }
 
-  export async function register(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const errors = validationResult(req);
+  // export async function register(
+  //   req: Request,
+  //   res: Response,
+  //   next: NextFunction
+  // ) {
+  //   try {
+  //     const errors = validationResult(req);
 
-      if (!errors.isEmpty()) {
-        return Util.sendError(res, errors.array()[0]["msg"]);
-      }
+  //     if (!errors.isEmpty()) {
+  //       return Util.sendError(res, errors.array()[0]["msg"]);
+  //     }
 
-      const existingUser = await UserDao.getUserByEmail(req.body.email);
+  //     const existingUser = await UserDao.getUserByEmail(req.body.email);
 
-      if (existingUser !== null) {
-        return Util.sendError(res, "Email already exists!");
-      }
+  //     if (existingUser !== null) {
+  //       return Util.sendError(res, "Email already exists!");
+  //     }
 
-      const password = req.body.password;
+  //     const password = req.body.password;
 
-      // Password requirements: at least 8 characters, one special character, one capital letter
-      const isPasswordValid = passwordValidation(password);
-      if (!isPasswordValid) {
-        return Util.sendError(
-          res,
-          "Password must be at least 8 characters long and contain at least one special character and one uppercase letter"
-        );
-      }
+  //     // Password requirements: at least 8 characters, one special character, one capital letter
+  //     const isPasswordValid = passwordValidation(password);
+  //     if (!isPasswordValid) {
+  //       return Util.sendError(
+  //         res,
+  //         "Password must be at least 8 characters long and contain at least one special character and one uppercase letter"
+  //       );
+  //     }
 
-      if (password !== req.body.confirmPassword) {
-        return Util.sendError(
-          res,
-          "Password and confirmed password do not match"
-        );
-      }
+  //     if (password !== req.body.confirmPassword) {
+  //       return Util.sendError(
+  //         res,
+  //         "Password and confirmed password do not match"
+  //       );
+  //     }
+  //     let roleEnum: Role;
 
-      const data: DUser = {
+  //     if (req.body.role === "CHILD") {
+  //       roleEnum = Role.CHILD;
+  //     } else {
+  //       roleEnum = Role.TEACHER;
+  //     }
+
+  //     const data: DUser = {
        
-        email: req.body.email,
-        phoneNumber: req.body.phoneNumber,
-        name: req.body.name,
-        password: password,
+  //       email: req.body.email,
+  //       phoneNumber: req.body.phoneNumber,
+  //       name: req.body.name,
+  //       password: password,
+  //       role: roleEnum
 
-      };
+  //     };
 
-      const token = await UserDao.createCustomer(data);
+  //     const token = await UserDao.createCustomer(data);
 
-      await EmailService.sendWelcomeEmail(req.body.email,
-            "Welcome to ClassQ",
-            "Welcome to ClassQ",
-            `Thank you for registering with us.`);
+  //     await EmailService.sendWelcomeEmail(req.body.email,
+  //           "Welcome to ClassQ",
+  //           "Welcome to ClassQ",
+  //           `Thank you for registering with us.`);
 
-      Util.sendSuccess(res, token, "User registered");
-    } catch (error) {
-      console.error("Error in CustomerEp.register:", error);
-      Util.sendError(res, "An internal server error occurred", 500);
+  //     Util.sendSuccess(res, token, "User registered");
+  //   } catch (error) {
+  //     console.error("Error in CustomerEp.register:", error);
+  //     Util.sendError(res, "An internal server error occurred", 500);
+  //   }
+  // }
+
+export async function register(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+   
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.sendError(errors.array()[0]["msg"]);
     }
+
+    const existingEmail = await UserDao.getUserByEmail(req.body.email);
+    const existingPhone = await UserDao.getUserByPhone(req.body.phoneNumber); 
+    if (existingEmail) {
+      return Util.sendError(res, "Email already exists!");
+    }
+    if (existingPhone) {
+      return Util.sendError(res, "Phone number already exists!");
+    }
+
+    const password = req.body.password;
+
+    const isPasswordValid = passwordValidation(password);
+    if (!isPasswordValid) {
+      return Util.sendError(
+        res,
+        "Password must be at least 8 characters long, contain one special character, and one uppercase letter"
+      );
+    }
+
+    if (password !== req.body.confirmPassword) {
+      return Util.sendError(res, "Password and confirm password do not match");
+    }
+
+    let roleEnum: Role;
+    if (req.body.role === "CHILD") {
+      roleEnum = Role.CHILD;
+    } else {
+      roleEnum = Role.TEACHER;
+    }
+
+    const data: DUser = {
+      email: req.body.email,
+      phoneNumber: req.body.phoneNumber,
+      name: req.body.name,
+      password: password,
+      role: roleEnum,
+    };
+
+    const token = await UserDao.createCustomer(data);
+
+    await EmailService.sendWelcomeEmail(
+      req.body.email,
+      "Welcome to ClassQ",
+      "Welcome to ClassQ",
+      `Thank you for registering with us.`
+    );
+
+    Util.sendSuccess(res, token, "User registered");
+  } catch (error) {
+    console.error("Error in CustomerEp.register:", error);
+    Util.sendError(res, "An internal server error occurred", 500);
   }
+}
+
 
   export async function login(
     req: Request,

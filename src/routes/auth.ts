@@ -11,10 +11,10 @@ export function initAuthRoutes(app: Express) {
   app.post("/api/public/password/reset", UserEp.resetPassword);
 
  
-  app.post(
-    "/api/auth/updateUserRole",
-    Authentication.verifyToken,
-    UserEp.updateUserRole
-  );
+  // app.post(
+  //   "/api/auth/updateUserRole",
+  //   Authentication.verifyToken,
+  //   UserEp.updateUserRole
+  // );
   
 }
